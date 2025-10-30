@@ -1,0 +1,397 @@
+{
+  "name": "Agente – Aguardando agendamento",
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "id": "d0f6a3a5-8a85-4238-a3ac-8902d8bfa04f",
+      "name": "Return",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        448,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('When Executed by Another Workflow').item.json.message }}",
+        "options": {
+          "systemMessage": "={{ $('When Executed by Another Workflow').item.json.default_prompt }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -48,
+        176
+      ],
+      "id": "8a14cc40-696c-4bc8-9b4b-eb42ab7b09e5",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -48,
+        336
+      ],
+      "id": "07e7cdfb-4537-408b-9773-53f9359b53cb",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "AvFnQeMq6aXNioVd",
+          "name": "OpenAI Instituto Aguiar Neri"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('When Executed by Another Workflow').item.json.lead_id }}",
+        "contextWindowLength": 50
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        48,
+        400
+      ],
+      "id": "8825572d-9b02-4a2f-9b46-ddf11f51e2f9",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "rONPTDNEAexjUpqM",
+          "name": "Postgres Instituto Aguiar Neri"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -928,
+        160
+      ],
+      "id": "92e68c96-3fa3-4e25-90b6-bcdd29199f2d",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "72b4e3bd-dda1-49bd-bc5a-4ce55d4733a0",
+              "leftValue": "={{ $('When Executed by Another Workflow').item.json.status_id }}",
+              "rightValue": "={{ $('When Executed by Another Workflow').item.json[\"QUALIFICADO\"] }}",
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "3ea2e56a-3872-4601-9728-66fd7bd14dfc",
+              "leftValue": "={{ $('When Executed by Another Workflow').item.json.status_id }}",
+              "rightValue": "={{ $('When Executed by Another Workflow').item.json[\"ATENDIMENTO IA\"] }}",
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -400,
+        160
+      ],
+      "id": "3fdcbf3b-45a7-4d4a-98b8-703e25966b3b",
+      "name": "Checar Qualificado ou Atendimento IA"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ $('When Executed by Another Workflow').item.json.link }}/api/v4/leads/{{ $('When Executed by Another Workflow').item.json.lead_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $('When Executed by Another Workflow').item.json.authorization }}"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"status_id\": {{ $('When Executed by Another Workflow').item.json[\"AGUARDANDO AGENDAMENTO\"] }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -224,
+        80
+      ],
+      "id": "b6ce5d24-98ce-48d9-85ae-56917ec06418",
+      "name": "Alterar Status AGUARDANDO AGENDAMENTO",
+      "alwaysOutputData": false,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ $('When Executed by Another Workflow').item.json.link }}/api/v4/leads/{{ $('When Executed by Another Workflow').item.json.lead_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $('When Executed by Another Workflow').item.json.authorization }}"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"status_id\": {{ $('JSON Status').item.json[\"ESCALADO\"] }},\n  \"pipeline_id\": {{ $('When Executed by Another Workflow').item.json.pipeline_atendimento_humano }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        256,
+        176
+      ],
+      "id": "2ac18ae9-8c56-40a8-b2cc-219e5b212923",
+      "name": "Alterar Status e Pipeline",
+      "alwaysOutputData": false,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.link }}/api/v4/leads/pipelines/{{ $json.pipeline_atendimento_humano }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $json.authorization }}"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -752,
+        160
+      ],
+      "id": "966dd7a3-c22e-4e0a-a8dc-f46f7aa5fc1d",
+      "name": "Status da pipeline",
+      "alwaysOutputData": false,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const pipelineInfo = JSON.parse($input.first().json.data);\n\nconst statuses = pipelineInfo[\"_embedded\"][\"statuses\"];\n\nconst statusMap = {};\n\nfor (var i = 1; i < statuses.length; i++) {\n  statusMap[statuses[i].name] = statuses[i].id;\n}\n  \nreturn {\n  json: statusMap\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -576,
+        160
+      ],
+      "id": "4525dbcc-2e7d-447a-bf72-86214ca74ea7",
+      "name": "JSON Status"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "next_agent": "Aguardando agendamento",
+          "rationale": "Confirmação da atualização de disponibilidade; o lead já informou que pode pela manhã e demonstrou prontidão para marcar. Prosseguir com o agendamento.",
+          "status_id": 94200607,
+          "default_prompt": "# Agente de Atendimento Dr. Igor\n\n## IDENTIDADE \n\n### CONTEXTO\n\nVocê é Alice, assistente virtual especializada do Instituto Dr. Igor, clínica premium de nutrologia em Feira de Santana.\nRepresenta o Dr. Igor, nutrólogo com mais de 10 anos de experiência e pós-graduação em Ciências da Obesidade.\n\nSeu papel é consultivo e estratégico.\n\n### POSTURA\n\nAtuar como vendedora consultiva especializada, conduzindo leads desde o primeiro contato até a qualificação para agendamento, maximizando a taxa de conversão através de abordagem empática, personalizada e estratégica.\n\n**REALIDADE DO NEGÓCIO:**\n- 80% dos pacientes buscam resultados estéticos (emagrecimento, definição corporal).\n- Apenas 20% têm foco primário em saúde.\n\nAdapte sua abordagem para essa realidade.\n\n**VOCÊ É:** Consultora especializada focada em gerar percepção de valor\\\n**VOCÊ NÃO É:** Receptora de pedidos ou atendente passiva\n\n## DIRETRIZES DE COMUNICAÇÃO\n\n### Linguagem e Tom:\n- SEMPRE linguagem formal: \"O senhor/A senhora\" + nome\n- NUNCA emojis ou linguagem informal\n- Tom consultivo, empático e profissional\n- Valide sentimentos e preocupações\n- Explique termos técnicos quando necessário\n\n### Postura Estratégica:\n- Seja proativa na condução da conversa\n- Identifique oportunidades de quebrar objeções\n- Use casos de sucesso quando apropriado\n- Crie senso de urgência quando natural\n- Adapte-se ao perfil e comportamento do lead\n\n## INFORMAÇÕES DA CLÍNICA\n\n### Serviços e Valores:\n- **Consulta + Bioimpedância + Retorno (30 dias): R$ 700,00**\n- **EXCLUSIVAMENTE PARTICULAR** (não atendemos convênios)\n- **Atendimento presencial:** Feira de Santana\n- **Atendimento online:** Para pacientes de outras cidades\n- **Bioimpedância:** Disponível apenas presencial (exame de composição corporal)\n- **Online:** Cálculo detalhado de IMC + avaliação completa\n\n### Diferenciais a Destacar:\n- Pós-graduação em Ciências da Obesidade\n- Abordagem científica e personalizada\n- Tratamentos baseados em evidência\n- Foco em resultados sustentáveis\n- Casos de sucesso online e presencial\n- Acompanhamento incluído (retorno 30 dias)\n\n## LEMBRETES IMPORTANTES\n\n1. **Foque na realidade estética, não médica excessiva**\n2. **Seja consultiva, não receptiva**\n3. **Use condicionais para personalizar cada conversa**\n4. **Gere percepção de valor constantemente**\n5. **Qualifique com base nos 2 critérios obrigatórios apenas**\n6. **Adapte-se ao lead, não force o fluxo**\n7. **Mantenha sempre a linguagem formal e respeitosa**",
+          "subdomain": "mrenanjr",
+          "account_id": "35362584",
+          "contact_id": "24123622",
+          "message": "Pode ser pela manhã",
+          "lead_id": "20516240",
+          "lead_type": "2",
+          "link": "https://mrenanjr.kommo.com",
+          "respostaIA": 2764964,
+          "sales_bot_id_enviar_mensagem": 124298,
+          "ultima_mensagem_id": 2765298,
+          "pipeline_atendimento_ia": 12193284,
+          "pipeline_atendimento_humano": 12193315,
+          "pipeline_follow_up_id": 12193311,
+          "created_at": "1761092990",
+          "authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6ImFiNzJhNzM2NDhjZjczODZlOWIzZjg2YTk2MThmOTgzZDBmMzNlMmMxMGE5MmE0MmNkYTI3ZmFmMzYzZTNlMTc1ODFlNjJjM2I3NGE1OGMwIn0.eyJhdWQiOiJiZTViZmExOC0xZWM5LTQyMWUtOTZhYi1jMTZlMzk2ZDk3MjciLCJqdGkiOiJhYjcyYTczNjQ4Y2Y3Mzg2ZTliM2Y4NmE5NjE4Zjk4M2QwZjMzZTJjMTBhOTJhNDJjZGEyN2ZhZjM2M2UzZTE3NTgxZTYyYzNiNzRhNThjMCIsImlhdCI6MTc2MDMwOTc0NiwibmJmIjoxNzYwMzA5NzQ2LCJleHAiOjE5MTc5OTM2MDAsInN1YiI6IjE0MDE2MzAwIiwiZ3JhbnRfdHlwZSI6IiIsImFjY291bnRfaWQiOjM1MzYyNTg0LCJiYXNlX2RvbWFpbiI6ImtvbW1vLmNvbSIsInZlcnNpb24iOjIsInNjb3BlcyI6WyJjcm0iLCJmaWxlcyIsImZpbGVzX2RlbGV0ZSIsIm5vdGlmaWNhdGlvbnMiLCJwdXNoX25vdGlmaWNhdGlvbnMiXSwidXNlcl9mbGFncyI6MCwiaGFzaF91dWlkIjoiZmE0ODA3NWQtM2E1OC00YmJmLTkzZTEtNzYwMzI3ZjBjMmMxIiwiYXBpX2RvbWFpbiI6ImFwaS1jLmtvbW1vLmNvbSJ9.FHmKkldIZEYr0-iZr5Gb1jvLxqSAZMadZgvu7uX2L1_2Ef160Xd8zF40XfJ4ocBqLqPp_BrUeHmqVVSOn3RYvgAoYpENrn-oXW6Y3WxTJ3D_xzoW1nI4K9Oiebpdu8fCIE2MNEOGA4hX7p6CVxNE_UfSG1-K91TwcRolFDhF4t7ToZxS_TAwviJFicGG9mEmTIdh4t7rWRJl7kUd4lB4UUCaS_x7o9npG-42GywJ-rYs40fHB44_6tmWgX2FxAEAAXO-HVb6GyI20ZzlM8xF_EXsAds1pL-KDrt5EmJTX7nWvBYKO-kDb8gxV-5NKJuV2LFHhH6FU894V_IBGtI2IA",
+          "NOVO LEAD": 94200603,
+          "ATENDIMENTO IA": 94200607,
+          "QUALIFICADO": 94200611,
+          "AGUARDANDO AGENDAMENTO": 94200615,
+          "AGENDADO": 94200619,
+          "Venda ganha": 142,
+          "Venda perdida": 143
+        }
+      }
+    ]
+  },
+  "connections": {
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Alterar Status e Pipeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Status da pipeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Checar Qualificado ou Atendimento IA": {
+      "main": [
+        [
+          {
+            "node": "Alterar Status AGUARDANDO AGENDAMENTO",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alterar Status AGUARDANDO AGENDAMENTO": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alterar Status e Pipeline": {
+      "main": [
+        [
+          {
+            "node": "Return",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Status da pipeline": {
+      "main": [
+        [
+          {
+            "node": "JSON Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JSON Status": {
+      "main": [
+        [
+          {
+            "node": "Checar Qualificado ou Atendimento IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f1a7e289-81c9-4525-b27d-3c3ac3980b8a",
+  "meta": {
+    "instanceId": "94f618de022ac8dfa10f12ace294d24601c74d50c50d62f1fd99b044d05edc51"
+  },
+  "id": "vZ1whzq1g1tcjKYe",
+  "tags": []
+}

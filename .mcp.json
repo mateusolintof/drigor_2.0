@@ -1,0 +1,22 @@
+{
+    "mcpServers": {
+      "sequential-thinking": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-sequential-thinking"
+        ]
+      },
+      "n8n": {
+        "command": "npx",
+        "args": ["-y", "@leonardsellem/n8n-mcp-server"],
+        "env": {
+          "N8N_API_URL": "https://flow.convert-saude.space/api/v1",
+          "N8N_API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0ZmMxMTA5MC1hNTVlLTQ3NmQtYTgyZi0wMzcyMDVkNDYyM2UiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzYxMjI3Nzk3fQ.MERbI54gsWIDZ3CtiRag2CCT-Mgq6SP2rMn0LFOLgI8",
+          "N8N_WEBHOOK_USERNAME": "test_user",
+          "N8N_WEBHOOK_PASSWORD": "test_pass_123"
+        }
+      }
+    }
+  }
+  

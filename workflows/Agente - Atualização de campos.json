@@ -1,0 +1,762 @@
+{
+  "name": "Agente - Atualização de campos",
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "id": "3bc5a884-27e1-45f3-bdea-4c4e8ab483b8",
+      "name": "Return",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        864,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -208,
+        144
+      ],
+      "id": "6cc6d85b-576a-418e-8396-a05998cdd292",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        192,
+        144
+      ],
+      "id": "624c0437-73bb-46b3-a4b3-b13253755358",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.field }}",
+                    "rightValue": "nome",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "1eecc944-833b-4397-9b72-237ab994f5b1"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Nome"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "fe36eb59-3f2b-4f09-a22a-fa8fb7dc9a22",
+                    "leftValue": "={{ $json.field }}",
+                    "rightValue": "cidade",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Cidade"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        992,
+        144
+      ],
+      "id": "1301be34-2d3f-45f0-b7cb-09cbd6de23d0",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c9b20c61-3781-4f4f-b5c9-fcceb0e108d7",
+              "leftValue": "={{ $json.field }}",
+              "rightValue": "nome",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "b5997921-039e-4c85-bbe6-24fed8cfac77",
+              "leftValue": "={{ $json.field }}",
+              "rightValue": "cidade",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        496,
+        160
+      ],
+      "id": "bb49473a-1743-40ec-b3ba-92b5a961a50a",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Ferramenta responsável por atualizar os campos personalizados no Kommo CRM.",
+        "method": "PATCH",
+        "url": "={{ $('When Executed by Another Workflow').item.json.link }}/api/v4/leads/{{ $('When Executed by Another Workflow').item.json.lead_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $('When Executed by Another Workflow').item.json.authorization }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"custom_fields_values\": [\n    {\n      \"field_id\": {{ $fromAI('field_id', 'id do campo personalizado') }},\n      \"values\": [\n        {\n          \"value\": \"{{ $fromAI('value', 'valor do campo personalizado') }}\"\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1040,
+        784
+      ],
+      "id": "bb462ae1-54da-4fc5-a436-02fb0613c19b",
+      "name": "kommo_update_field"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9f00b60e-5ed3-469e-b609-fd3672d364d9",
+              "name": "output",
+              "value": "Campos atualizados",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        432,
+        0
+      ],
+      "id": "19f93758-035e-4876-8405-efc787f769c1",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "updates",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        144
+      ],
+      "id": "dfec3f47-d6e1-4dc0-b884-3ac48668cf03",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ $('When Executed by Another Workflow').item.json.link }}/api/v4/leads/{{ $('When Executed by Another Workflow').item.json.lead_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $('When Executed by Another Workflow').item.json.authorization }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "name",
+              "value": "={{ $json.value }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1520,
+        128
+      ],
+      "id": "15d8b19d-e954-4e42-a707-dfec51064ec2",
+      "name": "Atualiza nome",
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "formTitle": "Upload your data to test RAG",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Upload your file(s)",
+              "fieldType": "file",
+              "acceptFileTypes": ".pdf, .csv",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -528,
+        576
+      ],
+      "id": "8cdb7ba0-7d19-4933-8a17-a2e71d78c2bd",
+      "name": "Upload your file here",
+      "webhookId": "82848bc4-5ea2-4e5a-8bb6-3c09b94a8c5d"
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "loader": "csvLoader",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        720
+      ],
+      "id": "c221bf72-e429-4653-bc64-176e8d551c06",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "content": "### Readme\nLoad your data into a vector database with the 📚 **Load Data** flow, and then use your data as chat context with the 🐕 **Retriever** flow.\n\n**Quick start**\n1. Click on the `Execute Workflow` button to run the 📚 **Load Data** flow.\n2. Click on `Open Chat` button to run the 🐕 **Retriever** flow. Then ask a question about content from your document(s)\n\n\nFor more info, check [our docs on RAG in n8n](https://docs.n8n.io/advanced-ai/rag-in-n8n/).",
+        "height": 300,
+        "width": 440,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1056,
+        512
+      ],
+      "typeVersion": 1,
+      "id": "1c486989-23eb-4537-9d30-844b5b48eb3a",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "### 📚 Load Data Flow",
+        "height": 460,
+        "width": 700,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -576,
+        512
+      ],
+      "typeVersion": 1,
+      "id": "6b650838-2b48-470c-b701-2b1e5e1e6d10",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        528,
+        560
+      ],
+      "id": "dfae67bd-8362-43cb-951f-3351ab0cf8a9",
+      "name": "When chat message received",
+      "webhookId": "4091fa09-fb9a-4039-9411-7104d213f601"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-nano",
+          "mode": "list",
+          "cachedResultName": "gpt-5-nano"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        608,
+        784
+      ],
+      "id": "b8ca3160-e3f9-42d8-933c-5cabf94874cb",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "AvFnQeMq6aXNioVd",
+          "name": "OpenAI Instituto Aguiar Neri"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### 🐕 2. Retriever Flow",
+        "height": 460,
+        "width": 680,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        512,
+        512
+      ],
+      "typeVersion": 1,
+      "id": "aecf9dad-bd8c-4c34-ba19-3be81b165139",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "### Embeddings\n\nThe Insert and Retrieve operation use the same embedding node.\n\nThis is to ensure that they are using the **exact same embeddings and settings**.\n\nDifferent embeddings might not work at all, or have unintended consequences.\n",
+        "height": 240,
+        "width": 320,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        400,
+        1024
+      ],
+      "typeVersion": 1,
+      "id": "13adfa82-1118-458a-b6d3-e1fae6ab4c84",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        1072
+      ],
+      "id": "407e810d-8f81-43e4-998f-3ce27ee7da5d",
+      "name": "Embeddings OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "AvFnQeMq6aXNioVd",
+          "name": "OpenAI Instituto Aguiar Neri"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.toJsonString() }}",
+        "options": {
+          "systemMessage": "=Você é um agente de atualização de campos personalizados do Kommo com acesso a uma base de conhecimento indexada em um Vector Store.\n\nTAREFA:\n1) Descobrir o campo na base de conhecimento:\n   - Consultar pelo `field`, incluindo variações (snake_case, camelCase, com/sem acentos, singular/plural) e sinônimos comuns.\n   - Retorne até Top-5 documentos. Cada documento pode conter: field_name, field_id, tipo (text|select|multiselect|boolean), descrições/opções (cada uma opcionalmente com option_id/enum_id).\n\n2) Selecionar o campo correto:\n   - Prefira correspondência exata/slug. Na ausência, use similaridade semântica pelo nome/aliases.\n   - Se mais de um campo empatar, escolha o de maior score.\n\n3) Resolver o valor:\n   - Se o tipo for `boolean`, mapeie semanticamente: {sim, verdadeiro, yes, on} → Sim; {não, falso, no, off} → Não.\n   - Se for `select` ou `multiselect`, faça *match* semântico de `value` com as descrições/opções do campo (normalize: minúsculas, sem acentos, lematize se possível). Escolha a melhor opção (ou opções) por similaridade.\n   - Se for `text`/`number`/`date`, use o `value` como está (faça parsing básico quando aplicável).\n\n4) Chamar a ferramenta de atualização indicada em `kommo_update_field` para realizar a atualização do campo personalizado.\n\n5) Regras:\n   - Nunca invente `field_id` ou `value`.\n   - Não faça perguntas.\n   - Tome a melhor decisão possível com a base atual."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        864,
+        560
+      ],
+      "id": "9fe625c3-8e57-4992-9385-0c9d3fe49a69",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "815da451-a28b-4451-8bfa-b03a7bb23071",
+              "name": "output",
+              "value": "={{ $json.chatInput }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        688,
+        560
+      ],
+      "id": "7cfc09fc-016b-461c-996b-1b72f4412dd7",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ $('When Executed by Another Workflow').item.json.link }}/api/v4/leads/{{ $('When Executed by Another Workflow').item.json.lead_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $('When Executed by Another Workflow').item.json.authorization }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"custom_fields_values\": [\n    {\n      \"field_id\": 2935016,\n      \"values\": [\n        {\n          \"value\": \"{{ $json.value }}\"\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1520,
+        304
+      ],
+      "id": "3b0f57a1-c711-4a08-962b-9c7cd9813b43",
+      "name": "Atualiza cidade",
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": "n8n_vectors_fields",
+        "embeddingBatchSize": 10,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1.3,
+      "position": [
+        -320,
+        576
+      ],
+      "id": "17ba9142-7726-4650-b181-d7ea47749cea",
+      "name": "Postgres PGVector Store",
+      "credentials": {
+        "postgres": {
+          "id": "3ckeXXCnp2kd03D3",
+          "name": "Postgres Vector Instituto Aguiar Neri"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Ferramenta de busca na base de campos personalizados (Vector Store).\n\nUse esta ferramenta sempre que receber um item no formato:\n{\"field\": \"<nome/slug do campo>\", \"value\": \"<valor do usuário>\", \"tool\": \"<nome_da_ferramenta_de_update>\"}\n\nAo CHAMAR a ferramenta, consulte usando APENAS o \"field\". Gere a consulta com variações:\n- trocar \"_\" por espaço, remover acentos e caixa;\n- sinônimos/aliases comuns (ex.: objetivo, meta, goal).\n\nRetorne candidatos suficientes (Top-K). Cada documento deve conter no conteúdo/metadata:\n- Campo, field_id, Descrição.\n\nO agente deverá:\n- escolher o melhor candidato por similaridade (preferir slug exato);",
+        "tableName": "n8n_vectors_fields",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1.3,
+      "position": [
+        752,
+        768
+      ],
+      "id": "96a5cfc8-0345-4584-905b-764460e75ee4",
+      "name": "Postgres PGVector Store1",
+      "credentials": {
+        "postgres": {
+          "id": "3ckeXXCnp2kd03D3",
+          "name": "Postgres Vector Instituto Aguiar Neri"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Atualiza nome",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Atualiza cidade",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "kommo_update_field": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Return",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualiza nome": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload your file here": {
+      "main": [
+        [
+          {
+            "node": "Postgres PGVector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Postgres PGVector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Postgres PGVector Store",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Postgres PGVector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualiza cidade": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres PGVector Store": {
+      "main": [
+        []
+      ]
+    },
+    "Postgres PGVector Store1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "31900821-c8a0-4b3f-8f1c-a5a5b1eaee42",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "94f618de022ac8dfa10f12ace294d24601c74d50c50d62f1fd99b044d05edc51"
+  },
+  "id": "zaqUj9dXQX3YFyBT",
+  "tags": []
+}
