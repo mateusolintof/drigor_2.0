@@ -1,0 +1,21 @@
+# Ignorar arquivos de configuração sensíveis e chaves de API
+.mcp.json
+.env
+*.env
+# Ignorar arquivos e pastas comuns
+.DS_Store
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+.idea/
+.vscode/
+# Ignorar arquivos de backup
+*~
+*.swp
+*.swo
+# Ignorar arquivos de build
+/dist/
+/build/
